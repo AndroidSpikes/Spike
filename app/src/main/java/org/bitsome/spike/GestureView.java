@@ -11,6 +11,9 @@ import android.view.View;
 public class GestureView extends View {
 
     private Paint paint;
+    private int drag = -1;
+    private float centerX = 0F;
+    private float centerY = 0F;
     private float previousX, previousY;
     private boolean clockwise = true;
 
@@ -32,12 +35,16 @@ public class GestureView extends View {
     private void setup() {
         setOnTouchListener(new OnTouchListener() {
             public boolean onTouch(View v, MotionEvent event) {
-                if (event.getAction() == MotionEvent.ACTION_MOVE) {
-                    float centerX = (float)getWidth()/2F;
-                    float centerY = (float)getHeight()/2F;
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    drag = 0;
+                    invalidate();
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    drag = -1;
+                } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
                     clockwise = isClockwise(centerX, centerY, event.getX(), event.getY());
                     previousX = event.getX();
                     previousY = event.getY();
+                    drag = 1;
                     invalidate();
                 }
                 return true;
@@ -61,29 +68,37 @@ public class GestureView extends View {
     }
 
     @Override protected void onDraw(Canvas canvas) {
+
         super.onDraw(canvas);
         if (paint == null) {
             paint = new Paint();
             paint.setTextSize(160);
             paint.setStrokeWidth(6);
+            centerX = (float)getWidth()/2F;
+            centerY = ((float)getHeight()/8F)*5F;
         }
 
-        canvas.drawCircle(getWidth() / 2, getHeight() / 2, 40F, paint);
-        if (clockwise) {
-            paint.setColor(Color.parseColor("#c8df8d"));
+        if (drag<=0) {
+            paint.setColor(Color.parseColor("#aaaaff"));
             canvas.drawRect(0, 0, getWidth(), getHeight(), paint);
-            paint.setColor(Color.parseColor("#4f6f1a"));
+            paint.setColor(Color.parseColor("#5555ff"));
         } else {
-            paint.setColor(Color.parseColor("#e2b6b3"));
-            canvas.drawRect(0, 0, getWidth(), getHeight(), paint);
-            paint.setColor(Color.parseColor("#b32318"));
+            if (clockwise) {
+                paint.setColor(Color.parseColor("#c8df8d"));
+                canvas.drawRect(0, 0, getWidth(), getHeight(), paint);
+                paint.setColor(Color.parseColor("#4f6f1a"));
+            } else {
+                paint.setColor(Color.parseColor("#e2b6b3"));
+                canvas.drawRect(0, 0, getWidth(), getHeight(), paint);
+                paint.setColor(Color.parseColor("#b32318"));
+            }
+            canvas.drawCircle(previousX, previousY, 40F, paint);
+            canvas.drawLine(previousX, previousY, centerX, centerY, paint);
+            String text = clockwise ? "Clockwise" : "Counter";
+            float w = paint.measureText(text);
+            canvas.drawText(text, (getWidth() - w) / 2, getHeight() / 4, paint);
         }
-        canvas.drawCircle(getWidth()/2,getHeight()/2, 40f,paint);
-        canvas.drawCircle(previousX, previousY, 40F, paint);
-        canvas.drawLine(previousX, previousY, getWidth() / 2, getHeight() / 2, paint);
-
-        String text = clockwise ?"Clockwise":"Counter";
-        float w = paint.measureText(text);
-        canvas.drawText(text, (getWidth() - w) / 2, getHeight()/4, paint);
+//        paint.setColor(Color.WHITE);
+        canvas.drawCircle(centerX, centerY, 40f, paint);
     }
 }
