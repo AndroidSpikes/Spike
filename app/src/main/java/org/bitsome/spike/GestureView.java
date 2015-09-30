@@ -40,6 +40,7 @@ public class GestureView extends View {
                     invalidate();
                 } else if (event.getAction() == MotionEvent.ACTION_UP) {
                     drag = -1;
+                    invalidate();
                 } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
                     clockwise = isClockwise(centerX, centerY, event.getX(), event.getY());
                     previousX = event.getX();
